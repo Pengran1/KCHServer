@@ -2,6 +2,6 @@
 
 # ALL KCH CONFIGURATIONS
 
-- [x] Finish my changes
-- [ ] Push my commits to GitHub
-- [ ] Open a pull request
+## - [x] Upload Ansible Configuration Files
+## - [ ] Upload Other Configuration Files
+## - [ ] Upload Slides
