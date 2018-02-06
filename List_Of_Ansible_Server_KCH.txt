@@ -1,0 +1,53 @@
+Ansible ELK
+IP: 192.168.2.181
+usr: root
+pass: ibskuch
+os: CentOS7
+
+Ansible Zabbix & Redis
+IP: 192.168.2.182
+usr: root
+pass: ibskuch
+os: CentOS7
+
+Ansible ELK Client / Zabbix Client / Redis Client
+IP: 192.168.2.183
+usr: root
+pass: ibskuch
+os: CentOS7
+
+Ansible Vault Only
+IP: 192.168.2.195
+usr: root
+pass: ibskuch
+os: CentOS7
+
+Ansible ELK Cluster (Master)
+IP: 192.168.2.192
+usr: root
+pass: ibskuch
+os: Ubuntu 16.04
+
+Ansible ELK Cluster (Slave)
+IP: 192.168.2.193
+usr: root
+pass: ibskuch
+os: Ubuntu 16.04
+
+Ansible ELK Cluster (Data)
+IP: 192.168.2.181
+usr: root
+pass: ibskuch
+os: Ubuntu 16.04
+
+Ansible Jasper Server (PENDING)
+IP: 192.168.2.196
+usr: root
+pass: ibskuch
+os: CentOS7
+
+Ansible Grafana 
+IP: 192.168.2.197
+usr: root
+pass: ibskuch
+os: CentOS7

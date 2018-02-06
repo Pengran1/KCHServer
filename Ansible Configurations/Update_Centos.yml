@@ -1,0 +1,62 @@
+##### This is for Updating Centos#####
+
+---
+#
+#This is for Updating Centos
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Auto Update
+      command: yum -y update
+
+
+##### This is for Updating EPEL#####
+
+##---
+#
+#This is for Updating EPEL
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: EPEL Update
+      command: yum -y install epel-release
+
+
+##### This is for installing Java#####
+
+##---
+#
+#This is for installing java
+#
+
+    - name: Install Java
+      command: yum -y install Java
+      ignore_errors: true
+      become: true
+
+
+##### This is to Disable SeLINUX #####
+
+##---
+#
+#This if for Disable SeLINUX
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Edit SeLiNUX Config File
+      lineinfile:
+        destfile: /etc/selinux/config
+        regexp: 'SELINUX=enforcing'
+        line: 'SELINUX=disabled'
+
+    - pause:
+        seconds: 30

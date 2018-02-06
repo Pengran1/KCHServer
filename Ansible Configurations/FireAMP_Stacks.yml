@@ -1,0 +1,162 @@
+##### This is to Disable SeLINUX #####
+
+---
+#
+#This if for Disable SeLINUX
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Edit SeLiNUX Config File
+      lineinfile:
+        destfile: /etc/selinux/config
+        regexp: 'SELINUX=enforcing'
+        line: 'SELINUX=disabled'
+
+    - pause:
+        seconds: 30
+
+
+##### This is to install Apache #####
+
+##---
+#
+#This if to install Apache
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Install Apache
+      command: yum -y install httpd
+
+    - name: Allow http/https
+      command: firewall-cmd --zone=public --permanent --add-service=http --add-service=https
+
+    - name: Start httpd
+      command: systemctl start httpd
+
+    - name: Restart httpd
+      command: systemctl restart httpd
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+
+    - pause:
+        seconds: 30
+
+
+##### This is to install PHP #####
+
+##---
+#
+#This if to install PHP
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Install PHP
+      command: yum -y install php php-mysql php-pdo php-gd php-mbstring
+
+    - name: Set PHP Timezone
+      lineinfile: 
+        destfile: '/etc/php.ini'
+        regexp: '^date.timezone ='
+        insertafter: '^;date.timezone ='
+        line: 'date.timezone = "Asia/Singapore"'
+
+    - name: Start httpd
+      command: systemctl start httpd
+
+    - name: Restart httpd
+      command: systemctl restart httpd
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+
+    - pause:
+        seconds: 30
+
+
+##### This is to install MariaDB #####
+
+##---
+#
+#This if to install MariaDB
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Install mariadb
+      yum: name={{ item }} state=latest
+      with_items:
+        - mariadb-server
+        - MySQL-python
+      ignore_errors: true
+      become: true
+
+    - name: start mysql and enabled
+      service: name=mariadb state=started enabled=yes
+
+    - name: Check MariaDB Service Aliveness
+      command: rpm -qa | grep mariadb
+      ignore_errors: true
+      become: true
+
+    - name: Restart MariaDB
+      command: systemctl restart mariadb.service
+
+    - name: Restart daemon
+      command: systemctl daemon-reload
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+
+##### This if for Firewall #####
+
+##---
+#
+#This is a playbook for Firewall Rules
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Enable firewalld
+      service: name=firewalld state=started enabled=yes
+
+    - name: Allow http/https
+      command: firewall-cmd --zone=public --permanent --add-service=http --add-service=https
+
+    - name: Allow port 10050 TCP/UDP
+      command: firewall-cmd --zone=public --permanent --add-port=10050/tcp --add-port=10050/udp
+
+    - name: Allow port 10051 TCP/UDP
+      command: firewall-cmd --zone=public --permanent --add-port=10051/tcp --add-port=10051/udp
+
+    - name: Allow port 80 TCP/UDP 
+      command: firewall-cmd --zone=public --add-port=80/tcp --add-port=80/udp --permanent
+
+    - name: Allow port 514 TCP/UDP - Syslog
+      command: firewall-cmd --zone=public --add-port=514/tcp --add-port=514/udp --permanent
+
+    - name: Allow port 10514 TCP/UDP - Syslog
+      command: firewall-cmd --zone=public --add-port=10514/tcp --add-port=10514/udp --permanent
+
+    - name: Allow port 5043 TCP/UDP - SOPHOS
+      command: firewall-cmd --zone=public --add-port=5043/tcp --add-port=5043/udp --permanent
+
+    - name: Allow port 161 TCP/UDP - SNMP
+      command: firewall-cmd --zone=public --add-port=161/tcp --add-port=161/udp --permanent
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+

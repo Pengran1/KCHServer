@@ -1,0 +1,66 @@
+##### This if for Firewall #####
+
+---
+#
+#This is a playbook for Firewall Rules
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Enable firewalld
+      service: name=firewalld state=started enabled=yes
+
+    - name: Allow http/https
+      command: firewall-cmd --zone=public --permanent --add-service=http --add-service=https
+
+    - name: Allow port 5044 TCP/UDP
+      command: firewall-cmd --zone=public --add-port=5044/tcp --add-port=5044/udp --permanent
+
+    - name: Allow port 5443 TCP/UDP
+      command: firewall-cmd --zone=public --add-port=5443/tcp --add-port=5443/udp --permanent
+
+    - name: Allow port 5000 TCP/UDP
+      command: firewall-cmd --zone=public --add-port=5000/tcp --add-port=5000/udp --permanent
+
+    - name: Allow port 10050 TCP/UDP
+      command: firewall-cmd --zone=public --permanent --add-port=10050/tcp --add-port=10050/udp
+
+    - name: Allow port 10051 TCP/UDP
+      command: firewall-cmd --zone=public --permanent --add-port=10051/tcp --add-port=10051/udp
+
+    - name: Allow port 5601 TCP/UDP - Kibana
+      command: firewall-cmd --zone=public --add-port=5601/tcp --add-port=5601/udp --permanent
+
+    - name: Allow port 9200 TCP/UDP - Elasticsearch
+      command: firewall-cmd --zone=public --add-port=9200/tcp --add-port=9200/udp --permanent
+
+    - name: Allow port 9300 TCP/UDP - Elasticsearch
+      command: firewall-cmd --zone=public --add-port=9300/tcp --add-port=9300/udp --permanent
+
+    - name: Allow port 80 TCP/UDP - HTTP/HTTPS
+      command: firewall-cmd --zone=public --add-port=80/tcp --add-port=80/udp --permanent
+
+    - name: Allow port 514 TCP/UDP - Syslog
+      command: firewall-cmd --zone=public --add-port=514/tcp --add-port=514/udp --permanent
+
+    - name: Allow port 10514 TCP/UDP - Syslog
+      command: firewall-cmd --zone=public --add-port=10514/tcp --add-port=10514/udp --permanent
+
+    - name: Allow port 5043 TCP/UDP - SOPHOS
+      command: firewall-cmd --zone=public --add-port=5043/tcp --add-port=5043/udp --permanent
+
+    - name: Allow port 161 TCP/UDP - SNMP
+      command: firewall-cmd --zone=public --add-port=161/tcp --add-port=161/udp --permanent
+
+    - name: Allow port logstash-forwarder port 
+      command: firewall-cmd --permanent --add-forward-port=port=80:proto=tcp:toport=5601
+
+
+#    - name: Allow port *** TCP/UDP - EXTRA PORTS Commands
+#      command: firewall-cmd --zone=public --add-port=***/tcp --add-port=***/udp --permanent
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+

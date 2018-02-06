@@ -1,0 +1,82 @@
+##### This is for Updating EPEL #####
+
+---
+#
+#This is for Updating EPEL
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: EPEL Update
+      command: yum -y install epel-release
+
+
+##### This is for Installing Redis #####
+
+##---
+#
+#This is for Installing Redis
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Install Redis
+      command: yum -y install redis
+
+    - name: Start Redis
+      command: systemctl start redis
+
+    - name: Enable Redis
+      command: systemctl enable redis
+
+    - name: Check Redis
+      command: redis-cli ping
+
+
+##### This is to Configure Redis #####
+
+##---
+#
+#This if for Configure Redis
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Persistence Options
+      lineinfile:
+        destfile: /etc/redis.conf
+        regexp: 'appendonly no'
+        line: 'appendonly yes'
+
+    - pause:
+        seconds: 30
+
+    - name: Restart Redis
+      command: systemctl restart redis
+
+
+##### This is to Tune Redis #####
+
+##---
+#
+#This if for Tune Redis
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Restart Redis
+      command: sysctl vm.overcommit_memory=1
+
+    - name: Restart Redis
+      command: systemctl restart redis
+
+
+

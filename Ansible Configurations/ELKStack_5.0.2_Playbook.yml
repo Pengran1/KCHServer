@@ -1,0 +1,247 @@
+##### This if for Firewall #####
+
+---
+#
+#This is a playbook for Firewall Rules
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Enable firewalld
+      service: name=firewalld state=started enabled=yes
+
+    - name: Allow http/https
+      command: firewall-cmd --zone=public --permanent --add-service=http --add-service=https
+
+    - name: Allow port 5044 TCP/UDP
+      command: firewall-cmd --zone=public --add-port=5044/tcp --add-port=5044/udp --permanent
+
+    - name: Allow port 5000 TCP/UDP
+      command: firewall-cmd --zone=public --add-port=5000/tcp --add-port=5000/udp --permanent
+
+    - name: Allow port 10051 TCP/UDP
+      command: firewall-cmd --zone=public --permanent --add-port=10051/tcp --add-port=10051/udp
+
+    - name: Allow port 5601 TCP/UDP - Kibana
+      command: firewall-cmd --zone=public --add-port=5601/tcp --add-port=5601/udp --permanent
+
+    - name: Allow port 9200 TCP/UDP - Elasticsearch
+      command: firewall-cmd --zone=public --add-port=9200/tcp --add-port=9200/udp --permanent
+
+    - name: Allow port 9300 TCP/UDP - Elasticsearch
+      command: firewall-cmd --zone=public --add-port=9300/tcp --add-port=9300/udp --permanent
+
+    - name: Allow port 80 TCP/UDP - HTTP/HTTPS
+      command: firewall-cmd --zone=public --add-port=80/tcp --add-port=80/udp --permanent
+
+    - name: Allow port 514 TCP/UDP - Syslog
+      command: firewall-cmd --zone=public --add-port=514/tcp --add-port=514/udp --permanent
+
+    - name: Allow port 10514 TCP/UDP - Syslog
+      command: firewall-cmd --zone=public --add-port=10514/tcp --add-port=10514/udp --permanent
+
+    - name: Allow port 5043 TCP/UDP - SOPHOS
+      command: firewall-cmd --zone=public --add-port=5043/tcp --add-port=5043/udp --permanent
+
+    - name: Allow port 161 TCP/UDP - SNMP
+      command: firewall-cmd --zone=public --add-port=161/tcp --add-port=161/udp --permanent
+
+    - name: Allow port logstash-forwarder port 
+      command: firewall-cmd --permanent --add-forward-port=port=80:proto=tcp:toport=5601
+
+
+#    - name: Allow port *** TCP/UDP - EXTRA PORTS Commands
+#      command: firewall-cmd --zone=public --add-port=***/tcp --add-port=***/udp --permanent
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+
+
+
+##### This is for Java Update #####
+
+##---
+#
+#This if for Updating of Java 1.8
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Install Java 1.8
+      command: yum install java-1.8.0-openjdk.x86_64
+
+
+
+##### This is The ELK Part ######
+
+##---
+#
+#This is Elasticsearch v5.0.2
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Download Elasticsearch
+      command: wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.rpm
+      ignore_errors: true
+      become: true
+
+    - name: Import GPG-Key
+      command: rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      ignore_errors: true
+      become: true
+
+    - name: Install Elasticsearch RPM
+      command: rpm --install elasticsearch-5.0.2.rpm
+      ignore_errors: true
+      become: true
+
+    - name: Restart Daemon
+      command: systemctl daemon-reload
+
+    - name: Enable Elasticsearch
+      command: systemctl enable elasticsearch.service
+
+    - name: Start Elasticsearch
+      command: systemctl start elasticsearch.service
+
+    - pause:
+        seconds: 30
+
+    - name: Restart Elasticsearch
+      command: systemctl restart elasticsearch.service
+
+    - name: Restart firewalld
+      command: systemctl restart firewalld.service
+
+    - name: Restart daemon
+      command: systemctl daemon-reload
+
+    - pause:
+        seconds: 30
+
+    - name: Check Elasticsearch Service Aliveness
+      command: curl -X GET http://localhost:9200
+      ignore_errors: true
+      become: true
+
+
+##---
+#
+#This is Kibana v5.0.2
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Download Kibana
+      command: wget https://artifacts.elastic.co/downloads/kibana/kibana-5.0.2-x86_64.rpm
+      ignore_errors: true
+      become: true
+
+    - name: Install Kibana RPM
+      command: rpm --install kibana-5.0.2-x86_64.rpm
+      ignore_errors: true
+      become: true
+
+    - name: Edit Kibana port to Open in config file
+      lineinfile:
+        destfile: /etc/kibana/kibana.yml
+        regexp: '#server.port'
+        line: 'server.port: 5601'
+
+    - name: Edit Kibana host to 192.168.2.181
+      lineinfile:
+        destfile: /etc/kibana/kibana.yml
+        regexp: '#server.host'
+        line: 'server.host: 192.168.2.181'
+
+    - name: Restart Daemon
+      command: systemctl daemon-reload
+
+    - name: Start Kibana
+      command: systemctl start kibana.service
+
+    - name: Enable Kibana
+      command: systemctl enable kibana.service
+
+    - pause:
+        seconds: 30
+
+    - name: Restart Elasticsearch
+      command: systemctl restart elasticsearch.service
+
+    - name: Restart Kibana
+      command: systemctl restart kibana.service
+
+    - name: Restart firewalld
+      command: systemctl restart firewalld.service
+
+    - name: Restart daemon
+      command: systemctl daemon-reload
+
+
+##---
+#
+#This is Logstash v5.0.2
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Download Logstash
+      command: wget https://artifacts.elastic.co/downloads/logstash/logstash-5.0.2.rpm
+      ignore_errors: true
+      become: true
+
+    - name: Install Logstash RPM
+      command: rpm --install logstash-5.0.2.rpm
+      ignore_errors: true
+      become: true
+
+    - name: Restart Daemon
+      command: systemctl daemon-reload
+
+    - name: Start Logstash
+      command: systemctl start logstash.service
+
+    - name: Enable Logstash
+      command: systemctl enable logstash.service
+
+    - name: Edit SSL Cert
+      lineinfile:
+        destfile: /etc/pki/tls/openssl.cnf
+        regexp: '^[ v3_ca ]'
+        insertafter: "^[ v3_ca ]"
+        line: 'subjectAltName = IP: 192.168.2.181'
+
+    - name: Generate SSL Cert
+      shell: sudo openssl req -config /etc/pki/tls/openssl.cnf -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout private/logstash-forwarder.key -out certs/logstash-forwarder.crt
+      args:
+        chdir: /etc/pki/tls
+
+    - pause:
+        seconds: 30
+
+    - name: Restart Elasticsearch
+      command: systemctl restart elasticsearch.service
+
+    - name: Restart Kibana
+      command: systemctl restart kibana.service
+
+    - name: Restart Logstash
+      command: systemctl restart logstash.service
+
+    - name: Restart firewalld
+      command: systemctl restart firewalld.service
+
+    - name: Restart daemon
+      command: systemctl daemon-reload

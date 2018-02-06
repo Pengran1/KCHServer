@@ -1,0 +1,189 @@
+##### This is to Disable SeLINUX #####
+
+---
+#
+#This if for Disable SeLINUX
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Edit SeLiNUX Config File
+      lineinfile:
+        destfile: /etc/selinux/config
+        regexp: 'SELINUX=enforcing'
+        line: 'SELINUX=disabled'
+
+    - pause:
+        seconds: 30
+
+
+##### This is to install Apache #####
+
+##---
+#
+#This if to install Apache
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Install Apache
+      command: yum -y install httpd
+
+    - name: Allow http/https
+      command: firewall-cmd --zone=public --permanent --add-service=http --add-service=https
+
+    - name: Start httpd
+      command: systemctl start httpd
+
+    - name: Restart httpd
+      command: systemctl restart httpd
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+
+    - pause:
+        seconds: 30
+
+
+##### This is to install PHP #####
+
+##---
+#
+#This if to install PHP
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Install PHP
+      command: yum -y install php php-mysql php-pdo php-gd php-mbstring
+
+    - name: Set PHP Timezone
+      lineinfile: 
+        destfile: '/etc/php.ini'
+        regexp: '^date.timezone ='
+        insertafter: '^;date.timezone ='
+        line: 'date.timezone = "Asia/Singapore"'
+
+    - name: Start httpd
+      command: systemctl start httpd
+
+    - name: Restart httpd
+      command: systemctl restart httpd
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+
+    - pause:
+        seconds: 30
+
+
+##### This if for Firewall #####
+
+##---
+#
+#This is a playbook for Firewall Rules
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Enable firewalld
+      service: name=firewalld state=started enabled=yes
+
+    - name: Allow http/https
+      command: firewall-cmd --zone=public --permanent --add-service=http --add-service=https
+
+    - name: Allow port 10050 TCP/UDP
+      command: firewall-cmd --zone=public --permanent --add-port=10050/tcp --add-port=10050/udp
+
+    - name: Allow port 10051 TCP/UDP
+      command: firewall-cmd --zone=public --permanent --add-port=10051/tcp --add-port=10051/udp
+
+    - name: Allow port 80 TCP/UDP 
+      command: firewall-cmd --zone=public --add-port=80/tcp --add-port=80/udp --permanent
+
+    - name: Allow port 514 TCP/UDP - Syslog
+      command: firewall-cmd --zone=public --add-port=514/tcp --add-port=514/udp --permanent
+
+    - name: Allow port 10514 TCP/UDP - Syslog
+      command: firewall-cmd --zone=public --add-port=10514/tcp --add-port=10514/udp --permanent
+
+    - name: Allow port 5043 TCP/UDP - SOPHOS
+      command: firewall-cmd --zone=public --add-port=5043/tcp --add-port=5043/udp --permanent
+
+    - name: Allow port 161 TCP/UDP - SNMP
+      command: firewall-cmd --zone=public --add-port=161/tcp --add-port=161/udp --permanent
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+
+
+
+##### This is The Zabbix Part ######
+
+##---
+#
+#This is Zabbix 3.2
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Get Zabbix Repo 1
+      command: yum -y install php-mysql php-gd php-xml php-bcmath  
+      ignore_errors: true
+      become: true
+
+    - name: Get Zabbix Repo 2
+      command: yum -y install http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/zabbix-release-3.4-1.el7.centos.noarch.rpm 
+      ignore_errors: true
+      become: true
+
+    - name: Install Zabbix Server
+      command: yum -y install zabbix-get zabbix-server-mysql zabbix-web-mysql zabbix-agent  
+      ignore_errors: true
+      become: true
+
+    - name: Start Zabbix Server
+      command:  systemctl start zabbix-server 
+
+    - name: Enable Zabbix Server
+      command:  systemctl enable zabbix-server 
+
+    - name: Edit Zabbix Agent Config
+      lineinfile:
+        destfile: /etc/zabbix/zabbix_agentd.conf
+        regexp: 'Server=127.0.0.1'
+#        insertafter: "---"
+        line: 'Server=192.168.2.182'
+
+    - name: Edit Zabbix Agent Config
+      lineinfile:
+        destfile: /etc/zabbix/zabbix_agentd.conf
+        regexp: 'ServerActive=127.0.0.1'
+#        insertafter: "---"
+        line: 'ServerActive=192.168.2.182'
+
+    - name: Start Zabbix Agent
+      command:  systemctl start zabbix-agent 
+
+    - name: Enable Zabbix Agent
+      command:  systemctl enable zabbix-agent
+
+    - name: Edit Http Settings
+      lineinfile:
+        destfile: /etc/httpd/conf.d/zabbix.conf
+        regexp: '# php_value date.timezone'
+#        insertafter: "---"
+        line: 'php_value date.timezone Asia/Tokyo'
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted 

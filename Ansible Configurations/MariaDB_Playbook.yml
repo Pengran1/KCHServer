@@ -1,0 +1,39 @@
+---
+#
+# Install and setting Mariadb
+#
+
+- hosts: testers
+  remote_user: root
+
+  tasks:
+    - name: Install mariadb
+      yum: name={{ item }} state=latest
+      with_items:
+        - mariadb-server
+        - MySQL-python
+      ignore_errors: true
+      become: true
+
+    - name: start mysql and enabled
+      service: name=mariadb state=started enabled=yes
+
+    - name: Check MariaDB Service Aliveness
+      command: rpm -qa | grep mariadb
+      ignore_errors: true
+      become: true
+
+    - name: Restart MariaDB
+      command: systemctl restart mariadb.service
+
+    - name: Restart daemon
+      command: systemctl daemon-reload
+
+    - name: Reload Firewall
+      service: name=firewalld state=restarted
+
+
+
+- hosts: testers
+  remote_user: root
+
