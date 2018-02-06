@@ -1,6 +1,6 @@
-# KCHSERVER
+# KCH SERVER REPO
 
-## ALL KCH CONFIGURATIONS
+## ALL KCH FILES
 
 ### - [x] Upload Ansible Configuration Files
 ### - [ ] Upload Other Configuration Files
